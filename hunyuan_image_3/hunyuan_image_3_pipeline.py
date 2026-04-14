@@ -687,7 +687,7 @@ class HunyuanImage3Text2ImagePipeline(DiffusionPipeline):
         num_inference_steps: int = 50,
         timesteps: List[int] = None,
         sigmas: List[float] = None,
-        guidance_scale: float = 7.5,
+        guidance_scale: float = 1.0,
         generator: Optional[Union[torch.Generator, List[torch.Generator]]] = None,
         latents: Optional[torch.Tensor] = None,
         output_type: Optional[str] = "pil",

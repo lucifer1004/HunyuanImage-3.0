@@ -10,8 +10,8 @@ if [ -z "$model_path" ]; then
     exit 1
 fi
 
-export VLLM_ENABLE_HUNYUAN_IMAGE3_TASK="1"
-export MULTI_MODA_SAVE_PATH="/tmp/hunyuan_image3/png/"
+export VLLM_ENABLE_HUNYUAN_IMAGE3_TASK="${VLLM_ENABLE_HUNYUAN_IMAGE3_TASK:-1}"
+TP_SIZE="${TP_SIZE:-8}"
 
 ############################################
 # 3. Start vLLM service
@@ -29,4 +29,4 @@ vllm serve "$model_path" \
     --max-num-seqs 1 \
     --enforce-eager \
     --trust-request-chat-template \
-    -tp 8
+    -tp "$TP_SIZE"

@@ -2260,7 +2260,7 @@ class HunyuanImage3ForCausalMM(HunyuanImage3PreTrainedModel, GenerationMixin):
         generator = [torch.Generator(self.device).manual_seed(seed) for seed in seeds]
 
         # 3. apply chat template
-        cfg_factor = {"gen_text": 1, "gen_image": 2}
+        cfg_factor = {"gen_text": 1, "gen_image": 1}
         bot_task = kwargs.pop("bot_task", "auto")
         # If `drop_think` enabled, always drop <think> parts in the context.
         drop_think = kwargs.get('drop_think', self.generation_config.drop_think)

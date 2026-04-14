@@ -5,21 +5,30 @@ python openai_client.py --bot-task image --width 1024 --height 1024 --seed 42
 """
 
 import argparse
-import json
-import requests
 import base64
+import json
+import os
 import random
+from urllib.parse import urlparse
+
+import requests
 
 
 def default(value, default_value):
     return value if value is not None else default_value
 
 
+def should_bypass_proxy(url):
+    hostname = urlparse(url).hostname
+    return hostname in {"127.0.0.1", "localhost", "0.0.0.0", "::1"}
+
+
 # ------------------ Default Parameters ------------------
 DEFAULTS = {
     "prompt": "Generate an image: In a colosseum, a woman and a bear engage in combat, illuminated by torchlight. Rendered in 3D style.",
-    "url": "http://0.0.0.0:8000/v1/chat/completions",
+    "url": os.getenv("VLLM_OPENAI_CHAT_URL", "http://127.0.0.1:8000/v1/chat/completions"),
     "model": "vllm_hunyuan_image3",
+    "output": os.getenv("HUNYUAN_IMAGE3_OUTPUT", "output.png"),
     "max_tokens": 256,
     "temperature": 0,
 }
@@ -103,6 +112,7 @@ def main():
                              "Defaults to loading from model generation config.")
     parser.add_argument("--url", default=DEFAULTS["url"])
     parser.add_argument("--model", default=DEFAULTS["model"])
+    parser.add_argument("--output", default=DEFAULTS["output"])
     parser.add_argument("--max_tokens", type=int, default=DEFAULTS["max_tokens"])
     parser.add_argument("--temperature", type=float, default=DEFAULTS["temperature"])
 
@@ -111,7 +121,10 @@ def main():
     payload = build_payload(args)
     headers = {"Content-Type": "application/json"}
 
-    resp = requests.post(args.url, data=json.dumps(payload), headers=headers, timeout=10000)
+    session = requests.Session()
+    if should_bypass_proxy(args.url):
+        session.trust_env = False
+    resp = session.post(args.url, data=json.dumps(payload), headers=headers, timeout=10000)
     print("Status:", resp.status_code)
     if resp.status_code != 200:
         print("Error:", resp.text)
@@ -126,9 +139,9 @@ def main():
 
     # Decode and save as PNG
     image_data = base64.b64decode(base64_image)
-    with open("output.png", "wb") as f:
+    with open(args.output, "wb") as f:
         f.write(image_data)
-    print("Image saved as output.png")
+    print(f"Image saved as {args.output}")
 
 
 if __name__ == "__main__":
